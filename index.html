@@ -250,12 +250,13 @@
 
         .status-text {
             font-family: 'Orbitron', sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             text-align: center;
             color: var(--glow-color);
-            min-height: 40px;
+            min-height: 50px;
             padding: 0 20px;
             text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+            line-height: 1.4;
         }
 
         .progress-bar {
@@ -271,7 +272,8 @@
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, #00f2fe, #4facfe);
-            transition: width 11s linear;
+            /* Speed matches the total time (~12.5 seconds total) */
+            transition: width 12.5s linear;
         }
 
         /* Footer */
@@ -392,7 +394,7 @@
     </div>
 
     <script>
-        let displayExpr = ""; // User readable expression
+        let displayExpr = ""; 
         let outputDiv = document.getElementById('output');
         let exprDiv = document.getElementById('expression');
         let loadingOverlay = document.getElementById('loadingOverlay');
@@ -400,23 +402,18 @@
         let progressFill = document.getElementById('progressFill');
         let historyList = document.getElementById('historyList');
 
+        // Total 7 mast text elements jo aaram se padhe ja sakein
         const funnyMessages = [
-            "Connecting to NASA supercomputer...",
-            "Calling Albert Einstein from Heaven...",
-            "Discussing architectural matrix with Isaac Newton...",
-            "Asking ChatGPT to stop writing poetry and solve this...",
-            "Verifying dimensions with Stephen Hawking's thesis...",
-            "Borrowing Google's quantum data centers...",
-            "Convincing the stubborn numbers to collaborate...",
-            "Counting on virtual fingers and toes...",
-            "Waking up the local math professor from sleep...",
-            "Double-checking equation with nearby aliens...",
-            "Almost there, rewriting laws of physics...",
-            "Calculation complete! Matrix stabilizing..."
+            "📡 Connecting to NASA supercomputer...",
+            "📞 Calling Albert Einstein for advice...",
+            "🍏 Discussing gravity matrix with Isaac Newton...",
+            "🤖 Asking ChatGPT to stop writing code and solve this...",
+            "🚀 Borrowing Google's quantum data centers...",
+            "🖐️ Hold on, counting on virtual fingers and toes...",
+            "👽 Double-checking equation with nearby aliens..."
         ];
 
         function input(val) {
-            // Replace internal JS object text with clean symbols for display view
             let cleanVal = val;
             if (val === 'Math.PI') cleanVal = 'π';
             if (val === 'Math.E') cleanVal = 'e';
@@ -451,12 +448,11 @@
             }
         }
 
-        // Mapping visual representation to actual safe evaluateable JS math code
         function prepareExpression(str) {
             let res = str;
             res = res.replace(/π/g, 'Math.PI');
             res = res.replace(/e/g, 'Math.E');
-            res = res.replace(/\^/g, ','); // For power syntax matching JS
+            res = res.replace(/\^/g, ','); 
             return res;
         }
 
@@ -470,15 +466,15 @@
             let messageIndex = 0;
             statusText.innerText = funnyMessages[0];
 
-            // Interval to cycle through hilarious statuses every ~900ms to 1s
+            // SPEED SLOW: Ab har message poore 1.7 Seconds tak rukega taaki user padh sake!
             const textInterval = setInterval(() => {
                 messageIndex++;
                 if (messageIndex < funnyMessages.length) {
                     statusText.innerText = funnyMessages[messageIndex];
                 }
-            }, 950);
+            }, 1700);
 
-            // Total loading length set to 11.5 seconds (10-12s range)
+            // Total transition loading complete hogi exact 12.5 seconds me
             setTimeout(() => {
                 clearInterval(textInterval);
                 executeCalculation();
@@ -486,14 +482,12 @@
                 // Hide overlay and reset
                 loadingOverlay.classList.remove('active');
                 progressFill.style.width = '0%';
-            }, 11500);
+            }, 12500);
         }
 
         function executeCalculation() {
             try {
                 let formula = prepareExpression(displayExpr);
-                
-                // Safe Evaluation using Function instead of raw dangerous eval
                 let finalResult = new Function(`return ${formula}`)();
                 
                 if (isNaN(finalResult) || !isFinite(finalResult)) {
@@ -501,7 +495,6 @@
                     return;
                 }
 
-                // Handle decimals nicely
                 if(finalResult % 1 !== 0) {
                     finalResult = parseFloat(finalResult.toFixed(8));
                 }
@@ -514,13 +507,11 @@
             }
         }
 
-        // History Management
         function addToHistory(exp, res) {
             const item = document.createElement('div');
             item.className = 'history-item';
             item.innerHTML = `<div class="history-exp">${exp}</div><div class="history-res">${res}</div>`;
             
-            // Clicking history item reloads it into calculator
             item.onclick = () => {
                 displayExpr = exp;
                 exprDiv.innerText = exp;
@@ -534,7 +525,6 @@
             historyList.innerHTML = "";
         }
 
-        // Keyboard Support mapping
         document.addEventListener('keydown', (e) => {
             if ((e.key >= '0' && e.key <= '9') || e.key === '.' || e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/' || e.key === '(' || e.key === ')') {
                 input(e.key);
