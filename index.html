@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Over-Engineered Scientific Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glow-color: #00f2fe;
+            --text-color: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 900px;
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Glassmorphism Card */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Calculator Styles */
+        .calculator {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .display-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        #expression {
+            font-size: 1.1rem;
+            color: rgba(255, 255, 255, 0.6);
+            text-align: right;
+            min-height: 27px;
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        #output {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.2rem;
+            text-align: right;
+            margin-top: 5px;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+            word-wrap: break-word;
+            word-break: break-all;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+        }
+
+        @media (max-width: 480px) {
+            .btn-grid {
+                gap: 8px;
+            }
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 15px 10px;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.operator {
+            color: #4facfe;
+            font-weight: bold;
+        }
+
+        button.scientific {
+            color: #ff9a9e;
+            font-size: 0.95rem;
+        }
+
+        button.clear {
+            color: #ff4b4b;
+        }
+
+        button.equal {
+            background: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+            color: #000;
+            font-weight: bold;
+            grid-column: span 2;
+        }
+
+        button.equal:hover {
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.6);
+        }
+
+        /* History Panel */
+        .history-panel {
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 10px;
+        }
+
+        .history-list {
+            overflow-y: auto;
+            flex-grow: 1;
+            padding-right: 5px;
+        }
+
+        .history-item {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-left: 3px solid #4facfe;
+        }
+
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .history-exp {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .history-res {
+            font-weight: bold;
+            color: #00f2fe;
+            text-align: right;
+        }
+
+        .clear-hist-btn {
+            background: transparent;
+            border: none;
+            color: #ff4b4b;
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 5px;
+        }
+        .clear-hist-btn:hover { background: transparent; box-shadow: none; color: #ff1f1f; }
+
+        /* Supercomputer Loading Overlay */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 25, 30, 0.95);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(0, 242, 254, 0.1);
+            border-left-color: var(--glow-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 30px;
+            box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+        }
+
+        .status-text {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            text-align: center;
+            color: var(--glow-color);
+            min-height: 40px;
+            padding: 0 20px;
+            text-shadow: 0 0 8px rgba(0, 242, 254, 0.5);
+        }
+
+        .progress-bar {
+            width: 60%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00f2fe, #4facfe);
+            transition: width 11s linear;
+        }
+
+        /* Footer */
+        .footer {
+            grid-column: span 2;
+            text-align: center;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 10px;
+            letter-spacing: 1px;
+        }
+        @media (max-width: 768px) { .footer { grid-column: span 1; } }
+
+        .footer span {
+            color: #00f2fe;
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(0, 242, 254, 0.3);
+        }
+
+        .action-tools {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 5px;
+        }
+        .copy-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .copy-btn:hover { color: #00f2fe; background: transparent; box-shadow: none;}
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div class="glass-panel calculator" style="position: relative;">
+            
+            <div class="loading-overlay" id="loadingOverlay">
+                <div class="spinner"></div>
+                <div class="status-text" id="statusText">Booting Supercomputer...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+
+            <div class="action-tools">
+                <button class="copy-btn" onclick="copyAnswer()" title="Copy Answer"><i class="fa-regular fa-copy"></i></button>
+            </div>
+
+            <div class="display-container">
+                <div id="expression"></div>
+                <div id="output">0</div>
+            </div>
+
+            <div class="btn-grid">
+                <button class="scientific" onclick="input('Math.sin(')">sin</button>
+                <button class="scientific" onclick="input('Math.cos(')">cos</button>
+                <button class="scientific" onclick="input('Math.tan(')">tan</button>
+                <button class="clear" onclick="clearDisplay()">C</button>
+                <button class="operator" onclick="backspace()"><i class="fa-solid fa-backspace"></i></button>
+
+                <button class="scientific" onclick="input('Math.log10(')">log</button>
+                <button class="scientific" onclick="input('Math.log(')">ln</button>
+                <button class="scientific" onclick="input('Math.PI')">π</button>
+                <button class="scientific" onclick="input('Math.E')">e</button>
+                <button class="operator" onclick="input('/')">/</button>
+
+                <button class="scientific" onclick="input('Math.pow(')">xʸ</button>
+                <button onclick="input('7')">7</button>
+                <button onclick="input('8')">8</button>
+                <button onclick="input('9')">9</button>
+                <button class="operator" onclick="input('*')">*</button>
+
+                <button class="scientific" onclick="input('Math.sqrt(')">√</button>
+                <button onclick="input('4')">4</button>
+                <button onclick="input('5')">5</button>
+                <button onclick="input('6')">6</button>
+                <button class="operator" onclick="input('-')">-</button>
+
+                <button class="scientific" onclick="input('(')">(</button>
+                <button onclick="input('1')">1</button>
+                <button onclick="input('2')">2</button>
+                <button onclick="input('3')">3</button>
+                <button class="operator" onclick="input('+')">+</button>
+
+                <button class="scientific" onclick="input(')')">)</button>
+                <button onclick="input('0')">0</button>
+                <button onclick="input('.')">.</button>
+                <button class="equal" onclick="startMegaCalculation()">=</button>
+            </div>
+        </div>
+
+        <div class="glass-panel history-panel">
+            <div class="history-header">
+                <h3><i class="fa-solid fa-history"></i> Quantum History</h3>
+                <button class="clear-hist-btn" onclick="clearHistory()">Clear</button>
+            </div>
+            <div class="history-list" id="historyList">
+                </div>
+        </div>
+
+        <div class="footer">
+            Developed with ❤️ by <span>DANISH</span>
+        </div>
+    </div>
+
+    <script>
+        let displayExpr = ""; // User readable expression
+        let outputDiv = document.getElementById('output');
+        let exprDiv = document.getElementById('expression');
+        let loadingOverlay = document.getElementById('loadingOverlay');
+        let statusText = document.getElementById('statusText');
+        let progressFill = document.getElementById('progressFill');
+        let historyList = document.getElementById('historyList');
+
+        const funnyMessages = [
+            "Connecting to NASA supercomputer...",
+            "Calling Albert Einstein from Heaven...",
+            "Discussing architectural matrix with Isaac Newton...",
+            "Asking ChatGPT to stop writing poetry and solve this...",
+            "Verifying dimensions with Stephen Hawking's thesis...",
+            "Borrowing Google's quantum data centers...",
+            "Convincing the stubborn numbers to collaborate...",
+            "Counting on virtual fingers and toes...",
+            "Waking up the local math professor from sleep...",
+            "Double-checking equation with nearby aliens...",
+            "Almost there, rewriting laws of physics...",
+            "Calculation complete! Matrix stabilizing..."
+        ];
+
+        function input(val) {
+            // Replace internal JS object text with clean symbols for display view
+            let cleanVal = val;
+            if (val === 'Math.PI') cleanVal = 'π';
+            if (val === 'Math.E') cleanVal = 'e';
+            if (val === 'Math.sin(') cleanVal = 'sin(';
+            if (val === 'Math.cos(') cleanVal = 'cos(';
+            if (val === 'Math.tan(') cleanVal = 'tan(';
+            if (val === 'Math.sqrt(') cleanVal = '√(';
+            if (val === 'Math.pow(') cleanVal = '^(';
+            if (val === 'Math.log10(') cleanVal = 'log(';
+            if (val === 'Math.log(') cleanVal = 'ln(';
+
+            displayExpr += cleanVal;
+            exprDiv.innerText = displayExpr;
+        }
+
+        function clearDisplay() {
+            displayExpr = "";
+            exprDiv.innerText = "";
+            outputDiv.innerText = "0";
+        }
+
+        function backspace() {
+            displayExpr = displayExpr.slice(0, -1);
+            exprDiv.innerText = displayExpr || "";
+        }
+
+        function copyAnswer() {
+            const ans = outputDiv.innerText;
+            if(ans && ans !== "0") {
+                navigator.clipboard.writeText(ans);
+                alert("Answer copied to clipboard!");
+            }
+        }
+
+        // Mapping visual representation to actual safe evaluateable JS math code
+        function prepareExpression(str) {
+            let res = str;
+            res = res.replace(/π/g, 'Math.PI');
+            res = res.replace(/e/g, 'Math.E');
+            res = res.replace(/\^/g, ','); // For power syntax matching JS
+            return res;
+        }
+
+        function startMegaCalculation() {
+            if (!displayExpr) return;
+
+            // Activate Loading screen
+            loadingOverlay.classList.add('active');
+            progressFill.style.width = '100%';
+
+            let messageIndex = 0;
+            statusText.innerText = funnyMessages[0];
+
+            // Interval to cycle through hilarious statuses every ~900ms to 1s
+            const textInterval = setInterval(() => {
+                messageIndex++;
+                if (messageIndex < funnyMessages.length) {
+                    statusText.innerText = funnyMessages[messageIndex];
+                }
+            }, 950);
+
+            // Total loading length set to 11.5 seconds (10-12s range)
+            setTimeout(() => {
+                clearInterval(textInterval);
+                executeCalculation();
+                
+                // Hide overlay and reset
+                loadingOverlay.classList.remove('active');
+                progressFill.style.width = '0%';
+            }, 11500);
+        }
+
+        function executeCalculation() {
+            try {
+                let formula = prepareExpression(displayExpr);
+                
+                // Safe Evaluation using Function instead of raw dangerous eval
+                let finalResult = new Function(`return ${formula}`)();
+                
+                if (isNaN(finalResult) || !isFinite(finalResult)) {
+                    outputDiv.innerText = "Error (Universe Exploded)";
+                    return;
+                }
+
+                // Handle decimals nicely
+                if(finalResult % 1 !== 0) {
+                    finalResult = parseFloat(finalResult.toFixed(8));
+                }
+
+                outputDiv.innerText = finalResult;
+                addToHistory(displayExpr, finalResult);
+
+            } catch (error) {
+                outputDiv.innerText = "Syntax Error!";
+            }
+        }
+
+        // History Management
+        function addToHistory(exp, res) {
+            const item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `<div class="history-exp">${exp}</div><div class="history-res">${res}</div>`;
+            
+            // Clicking history item reloads it into calculator
+            item.onclick = () => {
+                displayExpr = exp;
+                exprDiv.innerText = exp;
+                outputDiv.innerText = res;
+            };
+
+            historyList.insertBefore(item, historyList.firstChild);
+        }
+
+        function clearHistory() {
+            historyList.innerHTML = "";
+        }
+
+        // Keyboard Support mapping
+        document.addEventListener('keydown', (e) => {
+            if ((e.key >= '0' && e.key <= '9') || e.key === '.' || e.key === '+' || e.key === '-' || e.key === '*' || e.key === '/' || e.key === '(' || e.key === ')') {
+                input(e.key);
+            } else if (e.key === 'Enter') {
+                startMegaCalculation();
+            } else if (e.key === 'Backspace') {
+                backspace();
+            } else if (e.key === 'Escape') {
+                clearDisplay();
+            }
+        });
+    </script>
+</body>
+</html>
